@@ -1,13 +1,22 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class PoV : MonoBehaviour
 {
     public GameObject markerPrefab;
+    public GameObject debugMarkerPrefab;
     List<Node> nodes;
     public float AIRadius = 1f;
     public LayerMask layerMask;
+    public Heuristic heuristic;
+    public enum Heuristic
+    {
+        NULL,
+        EUCLIDEAN,
+        CLUSTER
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -24,7 +33,7 @@ public class PoV : MonoBehaviour
 
     public List<Vector3> generatePath(Vector3 from, Vector3 to)
     {
-        Node startNode = new Node(Room.CORRIDOR, new Vector3(999999,0,999999));
+        Node startNode = new Node(Room.CORRIDOR1, new Vector3(999999,0,999999));
         Node endNode = startNode;
         
         // find the start node
@@ -40,7 +49,7 @@ public class PoV : MonoBehaviour
                 }
             }
         }
-        Debug.Log("start point is" + startNode.position);
+        Instantiate(debugMarkerPrefab, startNode.position, Quaternion.identity);
 
         // find the end node
         foreach (Node node in nodes)
@@ -55,7 +64,6 @@ public class PoV : MonoBehaviour
                 }
             }
         }
-        Debug.Log("destination point is" + endNode.position);
 
         List<Vector3> path = Astar(startNode, endNode, to);
         path.Insert(0, from);
@@ -84,10 +92,12 @@ public class PoV : MonoBehaviour
             }
             OpenList.Remove(currentNode);
             ClosedList.Add(currentNode);
-            
-            if(currentNode == goalNode)
+
+            Vector3 diff = currentNode.position - destination;
+            RaycastHit hit;
+            if (currentNode == goalNode || !Physics.SphereCast(destination, AIRadius, diff, out hit, diff.magnitude, layerMask))
             {
-                return retracePath(startNode, goalNode);
+                return retracePath(startNode, currentNode);
             }
 
             //check connected nodes
@@ -101,8 +111,7 @@ public class PoV : MonoBehaviour
                 if (newPossibleCostSoFar < connection.CostSoFar || !OpenList.Contains(connection))
                 {
                     connection.CostSoFar = newPossibleCostSoFar;
-                    // NOTE SET THE HEURISTIC HERE. IMPLEMENT DIFFERENT STUFF AND STUFF
-                    connection.Heuristic = 0;
+                    connection.Heuristic = calcHeuristic(connection, destination); ;
                     connection.parentInPath = currentNode;
                     if (!OpenList.Contains(connection))
                     {
@@ -115,13 +124,30 @@ public class PoV : MonoBehaviour
         return null;
     }
 
+    private float calcHeuristic(Node potential, Vector3 target)
+    {
+        switch (heuristic)
+        {
+            case Heuristic.EUCLIDEAN:
+                Debug.Log("Euclidean heuristic");
+                return (target - potential.position).magnitude;
+            case Heuristic.CLUSTER:
+                Debug.Log("Cluster heuristic");
+                // return cluster
+                break;
+            default:
+                Debug.Log("Null heuristic");
+                return 0;
+        }
+        return 0;
+    }
+
     List<Vector3> retracePath(Node startNode, Node endNode)
     {
         List<Vector3> path = new List<Vector3>();
         Node currentNode = endNode;
         while(currentNode != startNode)
         {
-            Debug.Log(currentNode.position);
             path.Add(currentNode.position);
             currentNode = currentNode.parentInPath;
         }
@@ -165,14 +191,8 @@ public class PoV : MonoBehaviour
                     Vector3 diff = otherNode.position - node.position;
                     if (Physics.SphereCast(node.position, AIRadius, diff, out hit, diff.magnitude, layerMask))
                         {
-                        Debug.Log("SphereCast hit something");
-                        if (hit.transform.tag == "Wall")
+                        if (hit.transform.tag != "Wall")
                         {
-                            Debug.Log("Wall found");
-                        }
-                        else
-                        {
-                            Debug.Log(hit.transform.tag);
                             node.connections.Add(otherNode);
                         }
                     }
