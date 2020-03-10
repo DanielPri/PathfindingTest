@@ -8,26 +8,33 @@ public class PoV : MonoBehaviour
     public GameObject markerPrefab;
     public GameObject debugMarkerPrefab;
     public GameObject clustersGameObject;
-    List<Node> nodes;
-    List<Node> clusters;
+    
     public float AIRadius = 1f;
     public LayerMask layerMask;
     public Heuristic heuristic;
+
+    [HideInInspector]
     public enum Heuristic
     {
         NULL,
         EUCLIDEAN,
         CLUSTER
     }
+    [HideInInspector]
+    public Room destinationCluster;
+    [HideInInspector]
+    public Room startingCluster;
 
-    //public Room destinationCluster;
-    //public Room startingCluster;
     private GameObject markerContainer;
-    float[,] lookupTable;
+    private float[,] lookupTable;
+    private List<Node> nodes;
+    private List<Node> clusters;
 
     // Start is called before the first frame update
     void Start()
     {
+        destinationCluster = Room.NONE;
+        startingCluster = Room.NONE;
         nodes = new List<Node>();
         clusters = new List<Node>();
         markerContainer = new GameObject("markerContainer");
@@ -47,8 +54,8 @@ public class PoV : MonoBehaviour
     }
     public List<Vector3> generatePath(Vector3 from, Vector3 to, out float finalCost)
     {
-        Node startNode = new Node(Room.NONE, from);
-        Node endNode = new Node(Room.NONE, to);
+        Node startNode = new Node(startingCluster, from);
+        Node endNode = new Node(destinationCluster, to);
 
         // generate the start node
         foreach (Node node in nodes)
@@ -132,7 +139,7 @@ public class PoV : MonoBehaviour
                 {
                     
                     connection.CostSoFar = newPossibleCostSoFar;
-                    connection.Heuristic = calcHeuristic(connection, goalNode.position); ;
+                    connection.Heuristic = calcHeuristic(connection, goalNode); ;
                     connection.parentInPath = currentNode;
                     if (!OpenList.Contains(connection))
                     {
@@ -149,22 +156,25 @@ public class PoV : MonoBehaviour
         return null;
     }
 
-    private float calcHeuristic(Node potential, Vector3 target)
+    private float calcHeuristic(Node potential, Node target)
     {
         switch (heuristic)
         {
             case Heuristic.EUCLIDEAN:
                 Debug.Log("Euclidean heuristic");
-                return (target - potential.position).magnitude;
+                return (target.position - potential.position).magnitude;
             case Heuristic.CLUSTER:
                 Debug.Log("Cluster heuristic");
-                // return cluster
-                break;
+                if(potential.parentCluster == Room.NONE || target.parentCluster == Room.NONE)
+                {
+                    Debug.Log("Cluster heuristic unexpected error");
+                    return 0;
+                }
+                return lookupTable[(int)potential.parentCluster, (int)target.parentCluster];
             default:
                 Debug.Log("Null heuristic");
                 return 0;
         }
-        return 0;
     }
 
     List<Vector3> retracePath(Node startNode, Node endNode, out float finalCost)

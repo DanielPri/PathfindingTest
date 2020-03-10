@@ -25,8 +25,9 @@ public class NPCController : MonoBehaviour
         {
             Ray clickRay = cam.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
-            
-           if(Physics.Raycast(clickRay, out hit))
+            RaycastHit hit2;
+
+            if (Physics.Raycast(clickRay, out hit))
             {
                 if (useNavmesh)
                 {
@@ -34,10 +35,10 @@ public class NPCController : MonoBehaviour
                 }
                 else
                 {
-                    //PoVData.destinationCluster = (Room)System.Enum.Parse(typeof(Room), LayerMask.LayerToName(hit.transform.gameObject.layer));
+                    PoVData.destinationCluster = (Room)System.Enum.Parse(typeof(Room), LayerMask.LayerToName(hit.transform.gameObject.layer));
                     //Debug.Log("destination is " + PoVData.destinationCluster);
-                    //Physics.Raycast(transform.position, Vector3.down, out hit);
-                    //PoVData.startingCluster = (Room)System.Enum.Parse(typeof(Room), LayerMask.LayerToName(hit.transform.gameObject.layer));
+                    Physics.Raycast(transform.position, Vector3.down, out hit2);
+                    PoVData.startingCluster = (Room)System.Enum.Parse(typeof(Room), LayerMask.LayerToName(hit.transform.gameObject.layer));
                     //Debug.Log("origin is " + PoVData.startingCluster);
 
                     path = PoVData.generatePath(transform.position, hit.point);
