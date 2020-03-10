@@ -47,11 +47,15 @@ public class PoV : MonoBehaviour
     {
         
     }
+
+    // overloads generatePath without the output float
     public List<Vector3> generatePath(Vector3 from, Vector3 to)
     {
         float ignoreMePls;
         return generatePath(from, to, out ignoreMePls);
     }
+
+    // generates a path using A* between two points, also optionally outputs cost for cluster data
     public List<Vector3> generatePath(Vector3 from, Vector3 to, out float finalCost)
     {
         Node startNode = new Node(startingCluster, from);
@@ -82,7 +86,8 @@ public class PoV : MonoBehaviour
             }
         }
         nodes.Add(endNode);
-
+        
+        // here is the path. Before returning, we need to remove our newly added nodes and their connections
         List<Vector3> path = Astar(startNode, endNode, out finalCost);
 
         //clean up the nodes list since we dont need startnode and endnode anymore
@@ -97,9 +102,11 @@ public class PoV : MonoBehaviour
         nodes.Remove(startNode);
         nodes.Remove(endNode);
 
+        // now we can return the data
         return path;
     }
 
+    // The classic A* algorithm
     List<Vector3> Astar(Node startNode, Node goalNode, out float finalCost)
     {
         List<Node> OpenList = new List<Node>();
@@ -144,7 +151,7 @@ public class PoV : MonoBehaviour
                     if (!OpenList.Contains(connection))
                     {
                         OpenList.Add(connection);
-                        DrawLine(currentNode.position, connection.position, null, Color.red, 0.05f);
+                        // show that it has been added to the open list
                         var marker = Instantiate(markerPrefab, connection.position, Quaternion.identity, markerContainer.transform);
                         Destroy(marker, 2);
                     }
@@ -156,6 +163,7 @@ public class PoV : MonoBehaviour
         return null;
     }
 
+    // calculates a heuristic for a node based on the type chosen
     private float calcHeuristic(Node potential, Node target)
     {
         switch (heuristic)
@@ -177,6 +185,7 @@ public class PoV : MonoBehaviour
         }
     }
 
+    // checks all the parents of the endNode until it reaches the startnode, and returns a list of their positions
     List<Vector3> retracePath(Node startNode, Node endNode, out float finalCost)
     {
         List<Vector3> path = new List<Vector3>();
@@ -191,6 +200,7 @@ public class PoV : MonoBehaviour
         return path;
     }
 
+    // checks if a node is separated from another by a wall
     bool canReach(Vector3 from, Vector3 to)
     {
         Vector3 diff = from - to;
@@ -202,6 +212,7 @@ public class PoV : MonoBehaviour
         else return true;
     }
 
+    // When the program starts, all the PoV nodes are placed in a list along with their connections and cluster
     void generateNodes()
     {
         foreach (Transform room in transform)
@@ -216,6 +227,7 @@ public class PoV : MonoBehaviour
             }
         }
 
+        // finds all connections that can be reached 
         foreach (Node node in nodes)
         {
             foreach (Node otherNode in nodes)
@@ -237,14 +249,15 @@ public class PoV : MonoBehaviour
                     }
                 }
             }
-            //Draw a line for EVERY node
-            //foreach (Node connection in node.connections)
-            //{
-            //    //DrawLine(node.position, connection.position, null);
-            //}
+            //Draw a line for EVERY node, because it's cool.
+            foreach (Node connection in node.connections)
+            {
+                DrawLine(node.position, connection.position, null, Color.magenta, 0.1f);
+            }
         }
     }
 
+    // generates the lookup table for clusters by running the A* algorithm between them
     private void initializeClusters()
     {
         foreach(Transform child in clustersGameObject.transform)
@@ -267,6 +280,7 @@ public class PoV : MonoBehaviour
         }
     }
 
+    // used to demonstrate graphically what path is chosen
     public static void DrawLine(Vector3 from, Vector3 to, GameObject parent, Color color, float width)
     {
         GameObject someLine = new GameObject();
@@ -281,6 +295,7 @@ public class PoV : MonoBehaviour
         Destroy(someLine, 2f);
     }
 
+    // euclidean distance
     float GetDistance(Node node1, Node node2)
     {
         return Vector3.Magnitude(node1.position - node2.position);

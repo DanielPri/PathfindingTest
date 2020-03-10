@@ -8,7 +8,6 @@ public class NPCController : MonoBehaviour
     public NavMeshAgent agent;
     public bool useNavmesh = false;
     public PoV PoVData;
-    public float cooldown = 0.2f;
     List<Vector3> path;
 
     private GameObject lineContainer;

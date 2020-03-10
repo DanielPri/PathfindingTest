@@ -162,7 +162,7 @@ GameObject:
   - component: {fileID: 174607189}
   - component: {fileID: 174607188}
   m_Layer: 8
-  m_Name: Capsule
+  m_Name: Nose
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -199,7 +199,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 426cd1a7d6c859347aadfc4def769923, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1376,7 +1376,7 @@ GameObject:
   - component: {fileID: 919602999}
   - component: {fileID: 919602998}
   m_Layer: 8
-  m_Name: Cylinder
+  m_Name: NPC
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1398,7 +1398,6 @@ MonoBehaviour:
   agent: {fileID: 919602999}
   useNavmesh: 0
   PoVData: {fileID: 604118744}
-  cooldown: 0.2
 --- !u!195 &919602999
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -1488,14 +1487,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 919602997}
-  m_LocalRotation: {x: 0, y: 0.69377905, z: 0, w: 0.72018796}
-  m_LocalPosition: {x: -2.41, y: 2, z: -3.76}
+  m_LocalRotation: {x: -0, y: 0.30272347, z: -0, w: 0.95307845}
+  m_LocalPosition: {x: -19.15, y: 2, z: -17.79}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 174607187}
   m_Father: {fileID: 0}
   m_RootOrder: 4
-  m_LocalEulerAnglesHint: {x: 0, y: 87.86, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 35.243, z: 0}
 --- !u!1 &919784327
 GameObject:
   m_ObjectHideFlags: 0
@@ -2704,7 +2703,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1948131069}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 16.91, y: 1, z: -14.68}
+  m_LocalPosition: {x: 16.83, y: 1, z: -14.78}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 201643162}
