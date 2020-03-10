@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Wall
   - Node
+  - Cluster
   layers:
   - Default
   - TransparentFX
@@ -17,12 +18,12 @@ TagManager:
   - 
   - NPC
   - Wall
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
+  - ROOM1
+  - ROOM2
+  - ROOM3
+  - CORRIDOR1
+  - CORRIDOR2
+  - CORRIDOR3
   - 
   - 
   - 

@@ -34,14 +34,20 @@ public class NPCController : MonoBehaviour
                 }
                 else
                 {
+                    //PoVData.destinationCluster = (Room)System.Enum.Parse(typeof(Room), LayerMask.LayerToName(hit.transform.gameObject.layer));
+                    //Debug.Log("destination is " + PoVData.destinationCluster);
+                    //Physics.Raycast(transform.position, Vector3.down, out hit);
+                    //PoVData.startingCluster = (Room)System.Enum.Parse(typeof(Room), LayerMask.LayerToName(hit.transform.gameObject.layer));
+                    //Debug.Log("origin is " + PoVData.startingCluster);
+
                     path = PoVData.generatePath(transform.position, hit.point);
                     
                     //  ------ Draw the path -----------------------------///////////
                     Vector3 currentNode = path[0];
-                    PoV.DrawLine(transform.position, currentNode, lineContainer, Color.green, 1f);
+                    PoV.DrawLine(transform.position, currentNode, lineContainer, Color.green, 0.5f);
                     foreach (Vector3 nodeInPath in path)
                     {
-                        PoV.DrawLine(currentNode, nodeInPath, lineContainer, Color.green, 1f);
+                        PoV.DrawLine(currentNode, nodeInPath, lineContainer, Color.green, 0.5f);
                         currentNode = nodeInPath;
                     }
                     // -------------------------------------------------------///////

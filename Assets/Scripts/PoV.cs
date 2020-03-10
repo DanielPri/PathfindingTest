@@ -7,7 +7,9 @@ public class PoV : MonoBehaviour
 {
     public GameObject markerPrefab;
     public GameObject debugMarkerPrefab;
+    public GameObject clustersGameObject;
     List<Node> nodes;
+    List<Node> clusters;
     public float AIRadius = 1f;
     public LayerMask layerMask;
     public Heuristic heuristic;
@@ -18,14 +20,19 @@ public class PoV : MonoBehaviour
         CLUSTER
     }
 
+    //public Room destinationCluster;
+    //public Room startingCluster;
     private GameObject markerContainer;
+    float[,] lookupTable;
 
     // Start is called before the first frame update
     void Start()
     {
         nodes = new List<Node>();
+        clusters = new List<Node>();
         markerContainer = new GameObject("markerContainer");
         generateNodes();
+        initializeClusters();
     }
 
     // Update is called once per frame
@@ -33,8 +40,12 @@ public class PoV : MonoBehaviour
     {
         
     }
-
     public List<Vector3> generatePath(Vector3 from, Vector3 to)
+    {
+        float ignoreMePls;
+        return generatePath(from, to, out ignoreMePls);
+    }
+    public List<Vector3> generatePath(Vector3 from, Vector3 to, out float finalCost)
     {
         Node startNode = new Node(Room.NONE, from);
         Node endNode = new Node(Room.NONE, to);
@@ -65,7 +76,7 @@ public class PoV : MonoBehaviour
         }
         nodes.Add(endNode);
 
-        List<Vector3> path = Astar(startNode, endNode);
+        List<Vector3> path = Astar(startNode, endNode, out finalCost);
 
         //clean up the nodes list since we dont need startnode and endnode anymore
         foreach(Node startNodeConnection in startNode.connections)
@@ -82,7 +93,7 @@ public class PoV : MonoBehaviour
         return path;
     }
 
-    List<Vector3> Astar(Node startNode, Node goalNode)
+    List<Vector3> Astar(Node startNode, Node goalNode, out float finalCost)
     {
         List<Node> OpenList = new List<Node>();
         List<Node> ClosedList = new List<Node>();
@@ -106,7 +117,7 @@ public class PoV : MonoBehaviour
             
             if (currentNode == goalNode)
             {
-                return retracePath(startNode, currentNode);
+                return retracePath(startNode, currentNode, out finalCost);
             }
 
             //check connected nodes
@@ -134,6 +145,7 @@ public class PoV : MonoBehaviour
             }
         }
         Debug.Log("Pathfinding error!");
+        finalCost = 0f;
         return null;
     }
 
@@ -155,11 +167,12 @@ public class PoV : MonoBehaviour
         return 0;
     }
 
-    List<Vector3> retracePath(Node startNode, Node endNode)
+    List<Vector3> retracePath(Node startNode, Node endNode, out float finalCost)
     {
         List<Vector3> path = new List<Vector3>();
         Node currentNode = endNode;
-        while(currentNode != startNode)
+        finalCost = endNode.CostSoFar;
+        while (currentNode != startNode)
         {
             path.Add(currentNode.position);
             currentNode = currentNode.parentInPath;
@@ -187,7 +200,7 @@ public class PoV : MonoBehaviour
             {
                 if (childnode.tag == "Node")
                 {
-                    Node PoVNode = new Node((Room)System.Enum.Parse(typeof(Room), room.name.ToUpper()), childnode.position);
+                    Node PoVNode = new Node((Room)Enum.Parse(typeof(Room), room.name.ToUpper()), childnode.position);
                     nodes.Add(PoVNode);
                 }
             }
@@ -214,10 +227,33 @@ public class PoV : MonoBehaviour
                     }
                 }
             }
+            //Draw a line for EVERY node
             //foreach (Node connection in node.connections)
             //{
             //    //DrawLine(node.position, connection.position, null);
             //}
+        }
+    }
+
+    private void initializeClusters()
+    {
+        foreach(Transform child in clustersGameObject.transform)
+        {
+            Room clusterName = (Room)Enum.Parse(typeof(Room), child.name);
+            clusters.Add(new Node(clusterName, child.position));
+        }
+
+        // this will store the clusters distance data
+        lookupTable = new float[clusters.Count, clusters.Count];
+
+        foreach (Node currentCluster in clusters)
+        {
+            foreach(Node otherCluster in clusters)
+            {
+                float costToNode;
+                generatePath(currentCluster.position, otherCluster.position, out costToNode);
+                lookupTable[(int)currentCluster.parentCluster, (int)otherCluster.parentCluster] = costToNode;
+            }
         }
     }
 
