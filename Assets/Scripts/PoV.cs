@@ -18,10 +18,13 @@ public class PoV : MonoBehaviour
         CLUSTER
     }
 
+    private GameObject markerContainer;
+
     // Start is called before the first frame update
     void Start()
     {
         nodes = new List<Node>();
+        markerContainer = new GameObject("markerContainer");
         generateNodes();
     }
 
@@ -33,45 +36,53 @@ public class PoV : MonoBehaviour
 
     public List<Vector3> generatePath(Vector3 from, Vector3 to)
     {
-        Node startNode = new Node(Room.CORRIDOR1, new Vector3(999999,0,999999));
-        Node endNode = startNode;
-        
-        // find the start node
+        Node startNode = new Node(Room.NONE, from);
+        Node endNode = new Node(Room.NONE, to);
+
+        // generate the start node
         foreach (Node node in nodes)
         {
             RaycastHit hit;
             Vector3 diff = node.position - from;
             if (!Physics.SphereCast(from, AIRadius, diff, out hit, diff.magnitude, layerMask))
             {
-                if ((node.position - from).magnitude < (startNode.position - from).magnitude)
-                {
-                    startNode = node;
-                }
+                startNode.connections.Add(node);
+                node.connections.Add(startNode);
             }
         }
-        Instantiate(debugMarkerPrefab, startNode.position, Quaternion.identity);
+        nodes.Insert(0, startNode);
 
-        // find the end node
+        // generate the end node
         foreach (Node node in nodes)
         {
             RaycastHit hit;
             Vector3 diff = node.position - to;
             if (!Physics.SphereCast(to, AIRadius, diff, out hit, diff.magnitude, layerMask))
             {
-                if ((node.position - to).magnitude < (endNode.position - to).magnitude)
-                {
-                    endNode = node;
-                }
+                endNode.connections.Add(node);
+                node.connections.Add(endNode);
             }
         }
+        nodes.Add(endNode);
 
-        List<Vector3> path = Astar(startNode, endNode, to);
-        path.Insert(0, from);
-        path.Add(to);
+        List<Vector3> path = Astar(startNode, endNode);
+
+        //clean up the nodes list since we dont need startnode and endnode anymore
+        foreach(Node startNodeConnection in startNode.connections)
+        {
+            startNodeConnection.connections.Remove(startNode);
+        }
+        foreach (Node endNodeConnection in endNode.connections)
+        {
+            endNodeConnection.connections.Remove(endNode);
+        }
+        nodes.Remove(startNode);
+        nodes.Remove(endNode);
+
         return path;
     }
 
-    List<Vector3> Astar(Node startNode, Node goalNode, Vector3 destination)
+    List<Vector3> Astar(Node startNode, Node goalNode)
     {
         List<Node> OpenList = new List<Node>();
         List<Node> ClosedList = new List<Node>();
@@ -92,10 +103,8 @@ public class PoV : MonoBehaviour
             }
             OpenList.Remove(currentNode);
             ClosedList.Add(currentNode);
-
-            Vector3 diff = currentNode.position - destination;
-            RaycastHit hit;
-            if (currentNode == goalNode || !Physics.SphereCast(destination, AIRadius, diff, out hit, diff.magnitude, layerMask))
+            
+            if (currentNode == goalNode)
             {
                 return retracePath(startNode, currentNode);
             }
@@ -110,12 +119,16 @@ public class PoV : MonoBehaviour
                 float newPossibleCostSoFar = GetDistance(currentNode, connection) + currentNode.CostSoFar;
                 if (newPossibleCostSoFar < connection.CostSoFar || !OpenList.Contains(connection))
                 {
+                    
                     connection.CostSoFar = newPossibleCostSoFar;
-                    connection.Heuristic = calcHeuristic(connection, destination); ;
+                    connection.Heuristic = calcHeuristic(connection, goalNode.position); ;
                     connection.parentInPath = currentNode;
                     if (!OpenList.Contains(connection))
                     {
                         OpenList.Add(connection);
+                        DrawLine(currentNode.position, connection.position, null, Color.red, 0.05f);
+                        var marker = Instantiate(markerPrefab, connection.position, Quaternion.identity, markerContainer.transform);
+                        Destroy(marker, 2);
                     }
                 }
             }
@@ -176,7 +189,6 @@ public class PoV : MonoBehaviour
                 {
                     Node PoVNode = new Node((Room)System.Enum.Parse(typeof(Room), room.name.ToUpper()), childnode.position);
                     nodes.Add(PoVNode);
-                    Instantiate(markerPrefab, PoVNode.position, Quaternion.identity);
                 }
             }
         }
@@ -209,16 +221,17 @@ public class PoV : MonoBehaviour
         }
     }
 
-    public static void DrawLine(Vector3 from, Vector3 to, GameObject parent)
+    public static void DrawLine(Vector3 from, Vector3 to, GameObject parent, Color color, float width)
     {
         GameObject someLine = new GameObject();
         if(parent != null) { someLine.transform.parent = parent.transform;  }
         someLine.AddComponent<LineRenderer>();
         LineRenderer lr = someLine.GetComponent<LineRenderer>();
-        lr.startWidth = 0.2f;
+        lr.startWidth = width;
         lr.endWidth = lr.startWidth;
         lr.SetPosition(0, from);
         lr.SetPosition(1, to);
+        lr.material.color = color;
         Destroy(someLine, 2f);
     }
 

@@ -8,6 +8,7 @@ public enum Room {
     ROOM3,
     CORRIDOR1,
     CORRIDOR2,
-    CORRIDOR3
+    CORRIDOR3,
+    NONE
 };
 
