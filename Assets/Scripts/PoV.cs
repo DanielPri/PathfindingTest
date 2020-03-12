@@ -29,10 +29,11 @@ public class PoV : MonoBehaviour
     private float[,] lookupTable;
     private List<Node> nodes;
     private List<Node> clusters;
-
+    private GraphicsController gc;
     // Start is called before the first frame update
     void Start()
     {
+        gc = GameObject.Find("Graphics").GetComponent<GraphicsController>();
         destinationCluster = Room.NONE;
         startingCluster = Room.NONE;
         nodes = new List<Node>();
@@ -152,8 +153,11 @@ public class PoV : MonoBehaviour
                     {
                         OpenList.Add(connection);
                         // show that it has been added to the open list
-                        var marker = Instantiate(markerPrefab, connection.position, Quaternion.identity, markerContainer.transform);
-                        Destroy(marker, 2);
+                        if (gc.displayGraphics)
+                        {
+                            var marker = Instantiate(markerPrefab, connection.position, Quaternion.identity, markerContainer.transform);
+                            Destroy(marker, 2);
+                        }
                     }
                 }
             }
@@ -250,9 +254,12 @@ public class PoV : MonoBehaviour
                 }
             }
             //Draw a line for EVERY node, because it's cool.
-            foreach (Node connection in node.connections)
+            if (gc.displayGraphics)
             {
-                DrawLine(node.position, connection.position, null, Color.magenta, 0.1f);
+                foreach (Node connection in node.connections)
+                {
+                    DrawLine(node.position, connection.position, null, Color.magenta, 0.1f);
+                }
             }
         }
     }
